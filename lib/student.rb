@@ -56,7 +56,7 @@ end
 
   def update
     sql = "UPDATE students SET name = ? WHERE id = ?"
-    DB[:conn].execute(sql, @name, @id)
+    DB[:conn].execute(sql, self.name, self.id)
   end
 
   def self.find_by_name(name)
