@@ -3,58 +3,78 @@ require_relative "../config/environment.rb"
   #  with DB[:conn]
 
 class Student
-  attr_accessor :id, :name, :grade
+
+
+  # Remember, you can access your database connection anywhere in this class	  # Remember, you can access your database connection anywhere in this class
+  #  with DB[:conn]	  #  with DB[:conn]
+
+
+  attr_accessor :name, :grade, :id
+
+  def initialize(name, grade, id=nil)
+    @name = name
+    @grade = grade
+    @id = id
+  end
 
   def self.create_table
-    sql = <<-SQL 
-      CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY,
-        name TEXT, 
-        grade TEXT
-      )
+    sql = <<-SQL
+       CREATE TABLE IF NOT EXISTS students(
+         id INTEGER PRIMARY KEY,
+         name TEXT,
+         grade TEXT
+       )
     SQL
+
     DB[:conn].execute(sql)
   end
 
-  def self.drop_table 
-    DB[:conn].execute("DROP TABLE IF EXISTS students")
+  def self.drop_table
+    sql = "DROP TABLE IF EXISTS students"
+
+    DB[:conn].execute(sql)
   end
 
   def save
-    if self.id
-      self.update
-    else
-      sql = <<-SQL 
+    if !@id
+      sql = <<-SQL
         INSERT INTO students (name, grade)
-        VALUES (?,?)
+        VALUES (?, ?)
       SQL
 
       DB[:conn].execute(sql, self.name, self.grade)
       @id = DB[:conn].execute("SELECT last_insert_rowid() FROM students")[0][0]
+    else
+      sql = "UPDATE students SET name = ? WHERE id = ?"
+      DB[:conn].execute(sql, @name, @id)
     end
+
   end
 
-
-def self.create(name:, grade:)
-    student = Student.new(name, grade)
+  def self.create(name, grade)
+    student = Student.new(name,grade)
     student.save
     student
   end
 
   def self.new_from_db(row)
-    id = row[0]
-    name = row[1]
-    grade = row[2]
-    self.new(id, name, grade)
-  end 
+    student = Student.new(row[1],row[2], row[0])
+    # binding.pry
+  end
+
+
+  def update
+    sql = "UPDATE students SET name = ? WHERE id = ?"
+    DB[:conn].execute(sql, @name, @id)
+    # binding.pry
+  end
 
   def self.find_by_name(name)
     sql = "SELECT * FROM students WHERE name = ?"
-    DB[:conn].execute(sql, name).map { |row| new_from_db(row) }.first
+
+    student = DB[:conn].execute(sql, name)[0]
+    self.new_from_db(student)
   end
 
-  def update
-    sql = "UPDATE students SET name = ?, grade = ? WHERE id = ?"
-    DB[:conn].execute(sql, self.name, self.grade, self.id)
-  end
-end 
+
+end	end
