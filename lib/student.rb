@@ -3,12 +3,6 @@ require_relative "../config/environment.rb"
   #  with DB[:conn]
 
 class Student
-
-
-  # Remember, you can access your database connection anywhere in this class	  # Remember, you can access your database connection anywhere in this class
-  #  with DB[:conn]	  #  with DB[:conn]
-
-
   attr_accessor :name, :grade, :id
 
   def initialize(name, grade, id=nil)
@@ -59,14 +53,12 @@ class Student
 
   def self.new_from_db(row)
     student = Student.new(row[1],row[2], row[0])
-    # binding.pry
   end
 
 
   def update
     sql = "UPDATE students SET name = ? WHERE id = ?"
     DB[:conn].execute(sql, @name, @id)
-    # binding.pry
   end
 
   def self.find_by_name(name)
